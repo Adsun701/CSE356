@@ -1,0 +1,98 @@
+<html>
+
+<head>
+    <script>
+        var exports = {};
+    </script>
+    <script src="/cse356_milestone1_project/server/routes/user-routes.js"></script>
+    <script src="/cse356_milestone1_project/index.js">
+        let docsDiv = document.getElementById("listOfDocs"); //getting the div element in body
+        docsDiv.innerHTML = "";
+        let listOfDocuments;
+        async function getDocuments() { //calling async function to fetch top 10 edited documents
+            const request = await fetch('/collection/list').then((response) => {
+                if (!response.ok) {
+                    const message = `An error has occured: ${response.status}`;
+                    throw new Error(message);
+                }
+                listOfDocuments = response.data.allCollections; //retrieving map of documents
+            })
+        }
+        for (let i = 0; i < listOfDocuments.length; i++) {
+            // MAKE AN DOC ITEM
+            let docObj = listOfDocuments[i];
+            let docDiv = document.createElement("div");
+
+            docDiv.classList.add("document-list-item");
+            docDiv.id = "document-list-item-" + (i + 1);
+            // PUT THE CONTENT INTO THE DOC ITEM
+            let indexNumber = document.createTextNode((i + 1) + ". ");
+            let docNode = document.createElement('span');
+            docNode.innerHTML = " <a href=\"/edit/" + docObj.id + "\"</a>" + " Name: " + docObj.name;
+            docDiv.appendChild(indexNumber);
+            docDiv.appendChild(docNode);
+
+            // AND PUT THE DOC LIST ITEM INTO THE UI
+            docsDiv.appendChild(docDiv);
+        }
+    </script>
+</head>
+
+<body>
+    <h1>Top 10 Recently Edited Documents:</h1>
+    <div id="listOfDocs"></div>
+    <br>
+
+    <div>
+        <form method="post" id="form">
+            <h1>Create a new Document</h1>
+            <label for="name">Name:</label>
+            <input type="text" id="name" placeholder="Enter new document title" />
+            <!-- you click the Create button, the form-data will be sent to a page called collection/create -->
+            <button type="submit" value="Create"></button>
+        </form>
+    </div>
+    <br>
+
+    <button onclick="Logout()">Sign Out</button>
+</body>
+<!-- this script is for creating a new document -->
+<script src="/cse356_milestone1_project/index.js">
+    var form = document.getElementById('form')
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault()
+        let name = document.getElementById('name').value
+
+        fetch('/collection/create', {
+            method: 'POST',
+            body: JSON.stringify({
+                name: name
+            })
+        })
+            .then(function (response) {
+                return response.json()
+            })
+            .catch(error => console.error('Fetch Call Error:', error));
+    });
+</script>
+<!-- this script is for logging user out -->
+<script src="/cse356_milestone1_project/server/routes/user-routes.js">
+    async function Logout() {
+        const request = await fetch('/users/logout').then((response) => {
+            if (!response.ok) {
+                const message = `An error has occured: ${response.status}`;
+                throw new Error(message);
+            }
+            if (response.data.error === false) {
+                console.log("logout successful")
+            } else {
+                console.log(response.data.message)
+            }
+        })
+    }
+</script>
+
+</html>
+
+<!-- action="/collection/create"  -->
